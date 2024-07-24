@@ -44,7 +44,9 @@ uint8_t delo2d_context_init(Context *context, uint16_t width, uint16_t height, c
     context->back_buffer_height = buffer_height;
 }
 
-uint8_t delo2d_sprite_batch_init(SpriteBatch *sb, uint32_t capacity)
+uint8_t delo2d_sprite_batch_init(SpriteBatch *sb
+                                ,uint32_t     capacity
+                                )
 {
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) 
     {
@@ -106,29 +108,50 @@ uint8_t delo2d_sprite_batch_init(SpriteBatch *sb, uint32_t capacity)
     sb->capacity = capacity;
     sb->count = 0;
 
-    sb->colors     = malloc(sizeof(Vector4f)   *capacity);
+    sb->colors     = malloc(sizeof(Color)      *capacity);
     sb->transforms = malloc(sizeof(Matrix44)   *capacity);
     sb->offsets    = malloc(sizeof(Vector2f)   *capacity);
     sb->src_rects  = malloc(sizeof(Rectangle_f)*capacity);
+
+    sb->change_mask = 0b11111111;
+
 }
-uint8_t delo2d_sprite_batch_update(SpriteBatch *sb, Vector2f *colors, Matrix44 *transforms, Vector2f *offsets, Rectangle_f *src_rects, uint32_t count)
+uint8_t delo2d_sprite_batch_update(SpriteBatch *sb
+                                  ,Color       *colors
+                                  ,Matrix44    *transforms
+                                  ,Vector2f    *offsets
+                                  ,Rectangle_f *src_rects
+                                  ,uint32_t     count
+                                  )
 {
-    glBindBuffer(GL_ARRAY_BUFFER, sb->colors);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vector2f)*count, colors, GL_STATIC_DRAW); 
+    if(sb->change_mask & 0)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, sb->vbo_colors);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Color)*count, (float*)colors, GL_STATIC_DRAW); 
+    }
 
-    glBindBuffer(GL_ARRAY_BUFFER, sb->transforms);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Matrix44)*count, transforms, GL_STATIC_DRAW); 
+    if(sb->change_mask & 1)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, sb->vbo_transforms);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Matrix44)*count, (float*)transforms, GL_STATIC_DRAW); 
+    }
 
-    glBindBuffer(GL_ARRAY_BUFFER, sb->offsets);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vector2f)*count, offsets, GL_STATIC_DRAW); 
+    if(sb->change_mask & 2)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, sb->vbo_offsets);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vector2f)*count, (float*)offsets, GL_STATIC_DRAW); 
+    }
 
-    glBindBuffer(GL_ARRAY_BUFFER, sb->src_rects);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Rectangle_f)*count, src_rects, GL_STATIC_DRAW);  
+    if(sb->change_mask & 3)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, sb->vbo_src_rects);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Rectangle_f)*count, (float*)src_rects, GL_STATIC_DRAW); 
+    } 
 
     sb->count = count;
 }
 
-uint8_t delo2d_sprite_batch_update(SpriteBatch *sb)
+uint8_t delo2d_sprite_batch_render(SpriteBatch *sb)
 {
     /*------------------Draw instances-----------------*/
     
@@ -144,4 +167,71 @@ uint8_t delo2d_sprite_batch_update(SpriteBatch *sb)
     glBindVertexArray(0);
     glUseProgram(0);
     /*------------------Draw instances-----------------*/
+}
+
+uint8_t delo2d_sprite_batch_add(SpriteBatch *sb
+                               ,Color       *color
+                               ,Matrix44    *transform
+                               ,Vector2f    *offset
+                               ,Rectangle_f *src_rect
+                               ,int32_t      index
+                               )
+{
+    if(index < sb->capacity)
+    {
+        sb->colors    [index] = *color;
+        sb->transforms[index] = *transform;
+        sb->offsets   [index] = *offset;
+        sb->src_rects [index] = *src_rect;
+        sb->change_mask = 0b11111111;
+    }
+}
+
+uint8_t delo2d_sprite_batch_modify_color(SpriteBatch *sb
+                                        ,Color       *color
+                                        ,int32_t      index
+                                        )
+{
+    if(index < sb->capacity)
+    {
+        sb->change_mask |= (0 << 1);
+        sb->colors[index] = *color;
+    }
+
+}
+uint8_t delo2d_sprite_batch_modify_transform(SpriteBatch *sb
+                                            ,Matrix44    *transform
+                                            ,int32_t      index
+                                            )
+{
+    if(index < sb->capacity)
+    {
+        sb->change_mask |= (1 << 1);
+        sb->transforms[index] = *transform;
+    }
+
+}
+uint8_t delo2d_sprite_batch_modify_offset(SpriteBatch *sb
+                                         ,Vector2f    *offset
+                                         ,int32_t      index
+                                         )
+{
+    if(index < sb->capacity)
+    {
+        sb->change_mask |= (2 << 1);
+        sb->offsets[index] = *offset;
+    }
+
+}
+uint8_t delo2d_sprite_batch_modify_src_rect(SpriteBatch *sb
+                                           ,Rectangle_f *src_rect
+                                           ,int32_t      index
+                                           )
+{
+    if(index < sb->capacity)
+    {
+        sb->change_mask |= (3 << 1);
+        sb->src_rects[index] = *src_rect;
+    }
+
 }

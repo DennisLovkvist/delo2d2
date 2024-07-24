@@ -39,6 +39,14 @@ struct Vector4f
     float z;
     float w;
 };
+typedef struct Color Color;
+struct Color
+{
+    float r;
+    float g;
+    float b;
+    float a;
+};
 typedef struct Matrix44 Matrix44;
 struct Matrix44
 {	// Column-major order
@@ -71,10 +79,12 @@ struct SpriteBatch
     GLuint vbo_offsets;
     GLuint vbo_src_rects;
 
-    Vector4f    *colors;
+    Color       *colors;
     Matrix44    *transforms;
     Vector2f    *offsets;
     Rectangle_f *src_rects;
+
+    uint8_t change_mask;
 
     GLuint shader;
     Matrix44 projection;
@@ -84,4 +94,45 @@ struct SpriteBatch
 
 uint8_t delo2d_context_init(Context *context, uint16_t width, uint16_t height, char *window_title);
 
-uint8_t delo2d_sprite_batch_init(SpriteBatch *sb, uint32_t capacity);
+uint8_t delo2d_sprite_batch_init(SpriteBatch *sb
+                                ,uint32_t     capacity
+                                );
+
+
+uint8_t delo2d_sprite_batch_update(SpriteBatch *sb
+                                  ,Color       *colors
+                                  ,Matrix44    *transforms
+                                  ,Vector2f    *offsets
+                                  ,Rectangle_f *src_rects
+                                  ,uint32_t     count
+                                  );
+
+uint8_t delo2d_sprite_batch_render(SpriteBatch *sb);
+
+uint8_t delo2d_sprite_batch_add(SpriteBatch *sb
+                               ,Color       *color
+                               ,Matrix44    *transform
+                               ,Vector2f    *offset
+                               ,Rectangle_f *src_rect
+                               ,int32_t      index
+                               );
+
+uint8_t delo2d_sprite_batch_modify_color(SpriteBatch *sb
+                                        ,Color       *color
+                                        ,int32_t      index
+                                        );
+
+uint8_t delo2d_sprite_batch_modify_transform(SpriteBatch *sb
+                                            ,Matrix44    *transform
+                                            ,int32_t      index
+                                            );
+
+uint8_t delo2d_sprite_batch_modify_offset(SpriteBatch *sb
+                                         ,Vector2f    *offset
+                                         ,int32_t      index
+                                         );
+
+uint8_t delo2d_sprite_batch_modify_src_rect(SpriteBatch *sb
+                                           ,Rectangle_f *src_rect
+                                           ,int32_t      index
+                                           );
