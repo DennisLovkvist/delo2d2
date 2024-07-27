@@ -98,10 +98,10 @@ uint8_t delo2d_sprite_batch_init(SpriteBatch *sb
     GLfloat vertices[] = 
     {
     // positions     // texCoords
-    -1.0f, -1.0f,  0.0f, 0.0f,  // bottom-left
-     1.0f, -1.0f,  1.0f, 0.0f,  // bottom-right
-     1.0f,  1.0f,  1.0f, 1.0f,  // top-right
-    -1.0f,  1.0f,  0.0f, 1.0f   // top-left
+    -1.0f, -1.0f,0.0f,  0.0f, 0.0f,  // bottom-left
+     1.0f, -1.0f,0.0f,  1.0f, 0.0f,  // bottom-right
+     1.0f,  1.0f,0.0f,  1.0f, 1.0f,  // top-right
+    -1.0f,  1.0f,0.0f,  0.0f, 1.0f   // top-left
     };
 
     glGenBuffers(1, &sb->vbo_vertices);
@@ -111,24 +111,24 @@ uint8_t delo2d_sprite_batch_init(SpriteBatch *sb
     glGenBuffers(1, &sb->vbo_src_rects);
 
     glBindBuffer(GL_ARRAY_BUFFER, sb->vbo_vertices);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, sb->vbo_colors);
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(5 * sizeof(float)));  
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);  
     glEnableVertexAttribArray(2);
     glVertexAttribDivisor(2, 1);
 
     glBindBuffer(GL_ARRAY_BUFFER, sb->vbo_offsets);
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)(7 * sizeof(float)));  
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);  
     glEnableVertexAttribArray(3);
     glVertexAttribDivisor(3, 1);
 
     glBindBuffer(GL_ARRAY_BUFFER, sb->vbo_src_rects);
-    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(11 * sizeof(float)));  
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);  
     glEnableVertexAttribArray(4);
     glVertexAttribDivisor(4, 1);
 
@@ -139,7 +139,7 @@ uint8_t delo2d_sprite_batch_init(SpriteBatch *sb
         glVertexAttribPointer(5 + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 4 * 4, (void*)(sizeof(float) * 4 * i));
         glVertexAttribDivisor(5 + i, 1);
     }
-
+glBindVertexArray(0);
     glUseProgram(0);
 
     sb->capacity = capacity;
@@ -170,28 +170,28 @@ uint8_t delo2d_sprite_batch_update(SpriteBatch *sb)
     {
         glBindBuffer(GL_ARRAY_BUFFER, sb->vbo_colors);
         glBufferData(GL_ARRAY_BUFFER, sizeof(Color)*sb->count, (float*)sb->colors, GL_STATIC_DRAW);
-        sb->change_mask ^= (0 << 0);
+        sb->change_mask &= ~(0 << 0);
     }
 
     if((sb->change_mask >> 1) & 1)
     {
         glBindBuffer(GL_ARRAY_BUFFER, sb->vbo_transforms);
         glBufferData(GL_ARRAY_BUFFER, sizeof(Matrix44)*sb->count, (float*)sb->transforms, GL_STATIC_DRAW); 
-        sb->change_mask ^= (0 << 1);
+        sb->change_mask &= ~(1 << 0);
     }
 
     if((sb->change_mask >> 2) & 1)
     {
         glBindBuffer(GL_ARRAY_BUFFER, sb->vbo_offsets);
         glBufferData(GL_ARRAY_BUFFER, sizeof(Vector2f)*sb->count, (float*)sb->offsets, GL_STATIC_DRAW); 
-        sb->change_mask ^= (0 << 2);
+        sb->change_mask &= ~(2 << 0);
     }
 
     if((sb->change_mask >> 3) & 1)
     {
         glBindBuffer(GL_ARRAY_BUFFER, sb->vbo_src_rects);
         glBufferData(GL_ARRAY_BUFFER, sizeof(Rectangle_f)*sb->count, (float*)sb->src_rects, GL_STATIC_DRAW); 
-        sb->change_mask ^= (0 << 3);
+        sb->change_mask &= ~(3 << 0);
     } 
 }
 
@@ -209,7 +209,7 @@ uint8_t delo2d_sprite_batch_render(SpriteBatch *sb)
     glUseProgram(sb->shader);
     glUniformMatrix4fv(glGetUniformLocation(sb->shader,"u_mvp"),1,GL_FALSE,&sb->projection.x11);
 
-    glDrawArraysInstanced(GL_QUADS, 0, 4, sb->count);
+    glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, sb->count);
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindVertexArray(0);
@@ -667,7 +667,7 @@ Matrix44 matrix44_orthographic_projection(float l,float r,float t,float b,float 
 
         0,2.0/(t-b),0,-((t+b)/(t-b)),
 
-        0,0,2 / (f-n),-((f+n)/(f-n)),
+        0,0,-2 / (f-n),-((f+n)/(f-n)),
         0,0,0,1
     };
     return matrix;

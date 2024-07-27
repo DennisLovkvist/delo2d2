@@ -28,8 +28,8 @@ int main()
 
     Color c = (Color){1,1,1,1};
     Matrix44 t = matrix44_identity();
-    Vector2f o = (Vector2f){0,0};
-    Rectangle_f sr = (Rectangle_f){0,0,100,100};
+    Vector2f o = (Vector2f){-0.1,0};
+    Rectangle_f sr = (Rectangle_f){0,0,10,10};
 
     delo2d_sprite_batch_add(&sb,&c,&t,&o,&sr);
     
@@ -42,6 +42,7 @@ int main()
 
         delo2d_sprite_batch_update(&sb);
         delo2d_sprite_batch_render(&sb);
+        delo2d_gl_check_error();
 
         glfwSwapBuffers(context.window);
     }
