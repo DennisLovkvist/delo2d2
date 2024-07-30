@@ -76,6 +76,9 @@ uint8_t delo2d_context_init(Context *context, uint16_t width, uint16_t height, c
 
     context->back_buffer_width  = buffer_width;
     context->back_buffer_height = buffer_height;
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+    glEnable( GL_BLEND ); 
 }
 
 uint8_t delo2d_sprite_batch_init(SpriteBatch *sb
@@ -152,13 +155,6 @@ glBindVertexArray(0);
 
     sb->change_mask = 0b11111111;
 
-    sb->projection = matrix44_orthographic_projection((float)0.0f
-                                                     ,(float)sb->context->back_buffer_width
-                                                     ,(float)0.0f
-                                                     ,(float)sb->context->back_buffer_height
-                                                     ,(float)1
-                                                     ,(float)-1);
-
     delo2d_shader_from_files("shaders/sprite_batch.vert","shaders/sprite_batch.frag",&sb->shader);
 
     sb->texture = NULL;
@@ -195,10 +191,9 @@ uint8_t delo2d_sprite_batch_update(SpriteBatch *sb)
     } 
 }
 
-uint8_t delo2d_sprite_batch_render(SpriteBatch *sb)
+uint8_t delo2d_sprite_batch_render(SpriteBatch *sb, Matrix44 *projection)
 {
     /*------------------Draw instances-----------------*/
-    
     glBindVertexArray(sb->vao);
 
     if(sb->texture != NULL)
@@ -207,7 +202,7 @@ uint8_t delo2d_sprite_batch_render(SpriteBatch *sb)
         glBindTexture(GL_TEXTURE_2D, sb->texture->renderer_id);
     }
     glUseProgram(sb->shader);
-    glUniformMatrix4fv(glGetUniformLocation(sb->shader,"u_mvp"),1,GL_FALSE,&sb->projection.x11);
+    glUniformMatrix4fv(glGetUniformLocation(sb->shader,"u_mvp"),1,GL_FALSE,&projection->x11);
 
     glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, sb->count);
 
@@ -229,12 +224,20 @@ uint8_t delo2d_sprite_batch_add(SpriteBatch *sb
 
     if(index < sb->capacity)
     {
-        sb->colors    [index] = *color;
-        sb->transforms[index] = *transform;
-        sb->offsets   [index] = *offset;
-        sb->src_rects [index] = *src_rect;
-        sb->change_mask = 0b11111111;
+        uint16_t texture_width  = (sb->texture == NULL) ? 0.0:sb->texture->width;
+        uint16_t texture_height = (sb->texture == NULL) ? 0.0:sb->texture->height;
+
+        sb->colors    [index]        = *color;
+        sb->transforms[index]        = *transform;
+        sb->offsets   [index].x      = offset->x/(float)sb->context->back_buffer_width;
+        sb->offsets   [index].y      = offset->y/(float)sb->context->back_buffer_height;
+        sb->src_rects [index].x      = src_rect->x/texture_width;
+        sb->src_rects [index].y      = src_rect->y/texture_height;
+        sb->src_rects [index].width  = src_rect->width/texture_width;
+        sb->src_rects [index].height = src_rect->height/texture_height;
+        sb->change_mask              = 0b11111111;
         sb->count ++;
+        printf("%f\n",sb->offsets   [index].x);
     }
 }
 
@@ -757,3 +760,29 @@ Matrix44 matrix44_invert(Matrix44 input)
     return result;
 }
 //matrix code end
+
+//camera code begin
+uint8_t delo2d_camera_init(Camera *camera, Context *context)
+{
+    camera->projection = matrix44_orthographic_projection((float)0.0f
+                                                         ,(float)context->back_buffer_width
+                                                         ,(float)0.0f
+                                                         ,(float)context->back_buffer_height
+                                                         ,(float)1
+                                                         ,(float)-1
+                                                         );
+    
+    camera->projection = matrix44_multiply(camera->projection,matrix44_translation(1,-1,0));
+
+    camera->context = context;
+}
+uint8_t delo2d_camera_move(Camera *camera,float tx, float ty)
+{ 
+    float w  = camera->context->back_buffer_width;
+    float h  = camera->context->back_buffer_height;
+
+    Matrix44 translation = matrix44_translation(tx/w,ty/h,0);
+
+    camera->projection = matrix44_multiply(camera->projection,translation);
+}  
+//camera code end

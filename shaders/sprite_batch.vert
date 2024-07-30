@@ -13,10 +13,11 @@ uniform mat4 u_mvp;
 void main()
 {
     // Apply offset to vertex position
-    vec4 position = vec4(a_vertex.xy + a_offset, 0.0, 1.0);
+    vec4 position = vec4(a_vertex.xy, 0.0, 1.0);
     
     // Apply transformation and MVP matrix
     gl_Position = (a_transform * position)*u_mvp;
+    gl_Position += vec4(a_offset,0.0,0.0);
 
     // Compute texture coordinates
     v_tex_coord = a_tex_coord * a_src_rect.zw + a_src_rect.xy;

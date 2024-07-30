@@ -22,15 +22,21 @@ int main()
 
     delo2d_sprite_batch_init(&sb,100,&context);
 
+    Camera camera;
+    delo2d_camera_init(&camera,&context);
+
     Texture tex;
     delo2d_texture_load(&tex,"textures/sample.png");
     sb.texture = &tex;
 
     Color c = (Color){1,1,1,1};
-    Matrix44 t = matrix44_identity();
-    Vector2f o = (Vector2f){-0.1,0};
-    Rectangle_f sr = (Rectangle_f){0,0,10,10};
+    Matrix44 t = matrix44_scale(64,64,1);
+    Vector2f o = (Vector2f){0,0};
+    Rectangle_f sr = (Rectangle_f){0,0,64,64};
 
+    delo2d_sprite_batch_add(&sb,&c,&t,&o,&sr);
+
+o.x = 200;
     delo2d_sprite_batch_add(&sb,&c,&t,&o,&sr);
     
     while (!glfwWindowShouldClose(context.window)) 
@@ -41,7 +47,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         delo2d_sprite_batch_update(&sb);
-        delo2d_sprite_batch_render(&sb);
+        delo2d_sprite_batch_render(&sb, &camera.projection);
         delo2d_gl_check_error();
 
         glfwSwapBuffers(context.window);

@@ -10,5 +10,5 @@ void main()
     
     vec4 tex_color = texture2D(texture,v_tex_coord); 
 
-    color = vec4(1,1,1,1);
+    color = tex_color;
 }

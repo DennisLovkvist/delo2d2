@@ -56,6 +56,12 @@ struct Matrix44
 		  x14, x24, x34, x44;
 };
 
+typedef struct Camera Camera;
+struct Camera
+{
+    Context *context;
+    Matrix44 projection; 
+};
 typedef struct Texture Texture;
 struct Texture
 {
@@ -88,7 +94,6 @@ struct SpriteBatch
     Context *context;
 
     GLuint shader;
-    Matrix44 projection;
     Texture *texture;
 
 };
@@ -106,7 +111,7 @@ uint8_t delo2d_sprite_batch_init(SpriteBatch *sb
 
 uint8_t delo2d_sprite_batch_update(SpriteBatch *sb);
 
-uint8_t delo2d_sprite_batch_render(SpriteBatch *sb);
+uint8_t delo2d_sprite_batch_render(SpriteBatch *sb, Matrix44 *projection);
 
 uint8_t delo2d_sprite_batch_add(SpriteBatch *sb
                                ,Color       *color
@@ -160,3 +165,7 @@ uint8_t delo2d_texture_load(Texture *texture, char file_path[]);
 //shader code begin
 uint8_t delo2d_shader_from_files(char *path_shader_vert,char *path_shader_frag, uint32_t *shader_id);
 //shader code end
+
+//camera code begin
+uint8_t delo2d_camera_init(Camera *camera, Context *context);
+//camera code end
