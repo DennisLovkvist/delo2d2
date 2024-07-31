@@ -61,6 +61,7 @@ struct Camera
 {
     Context *context;
     Matrix44 projection; 
+    Vector2f position;
 };
 typedef struct Texture Texture;
 struct Texture
@@ -168,4 +169,7 @@ uint8_t delo2d_shader_from_files(char *path_shader_vert,char *path_shader_frag, 
 
 //camera code begin
 uint8_t delo2d_camera_init(Camera *camera, Context *context);
+void delo2d_camera_move(Camera *camera,float tx, float ty);
+void delo2d_camera_zoom(Camera *camera,float z);
+void delo2d_camera_rotate(Camera *camera,float t);
 //camera code end

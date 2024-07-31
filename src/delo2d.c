@@ -229,8 +229,8 @@ uint8_t delo2d_sprite_batch_add(SpriteBatch *sb
 
         sb->colors    [index]        = *color;
         sb->transforms[index]        = *transform;
-        sb->offsets   [index].x      = offset->x/(float)sb->context->back_buffer_width;
-        sb->offsets   [index].y      = offset->y/(float)sb->context->back_buffer_height;
+        sb->offsets   [index].x      = offset->x;
+        sb->offsets   [index].y      = offset->y;
         sb->src_rects [index].x      = src_rect->x/texture_width;
         sb->src_rects [index].y      = src_rect->y/texture_height;
         sb->src_rects [index].width  = src_rect->width/texture_width;
@@ -775,8 +775,12 @@ uint8_t delo2d_camera_init(Camera *camera, Context *context)
     camera->projection = matrix44_multiply(camera->projection,matrix44_translation(1,-1,0));
 
     camera->context = context;
+
+    camera->position = (Vector2f){0,0};
+
+
 }
-uint8_t delo2d_camera_move(Camera *camera,float tx, float ty)
+void delo2d_camera_move(Camera *camera,float tx, float ty)
 { 
     float w  = camera->context->back_buffer_width;
     float h  = camera->context->back_buffer_height;
@@ -784,5 +788,23 @@ uint8_t delo2d_camera_move(Camera *camera,float tx, float ty)
     Matrix44 translation = matrix44_translation(tx/w,ty/h,0);
 
     camera->projection = matrix44_multiply(camera->projection,translation);
+
+}  
+void delo2d_camera_zoom(Camera *camera,float z)
+{ 
+    Matrix44 transformation = matrix44_scale(z,z,0);
+
+    camera->projection = matrix44_multiply(camera->projection,transformation);
+}  
+void delo2d_camera_rotate(Camera *camera,float t)
+{ 
+    Matrix44 transformation = matrix44_rotation_z(t);
+
+    Matrix44 translation_0 = matrix44_translation(-camera->position.x,-camera->position.y,0);
+    Matrix44 translation_1 = matrix44_translation(camera->position.x,camera->position.y,0);
+
+    camera->projection = matrix44_multiply(camera->projection,translation_0);
+    camera->projection = matrix44_multiply(camera->projection,transformation);
+    camera->projection = matrix44_multiply(camera->projection,translation_1);
 }  
 //camera code end

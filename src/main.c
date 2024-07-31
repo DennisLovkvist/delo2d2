@@ -31,12 +31,13 @@ int main()
 
     Color c = (Color){1,1,1,1};
     Matrix44 t = matrix44_scale(64,64,1);
-    Vector2f o = (Vector2f){0,0};
+    Vector2f o = (Vector2f){200,0};
     Rectangle_f sr = (Rectangle_f){0,0,64,64};
 
     delo2d_sprite_batch_add(&sb,&c,&t,&o,&sr);
 
-o.x = 200;
+o.x = 400;
+o.y = 0;
     delo2d_sprite_batch_add(&sb,&c,&t,&o,&sr);
     
     while (!glfwWindowShouldClose(context.window)) 
@@ -50,6 +51,7 @@ o.x = 200;
         delo2d_sprite_batch_render(&sb, &camera.projection);
         delo2d_gl_check_error();
 
+    delo2d_camera_rotate(&camera,0.01);
         glfwSwapBuffers(context.window);
     }
 
