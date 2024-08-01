@@ -2,7 +2,8 @@
 #include <GLFW/glfw3.h>  
 #include <stdio.h>       
 #include <stdlib.h>      
-#include <delo2d.h>      
+#include <delo2d.h>  
+#include <math.h>    
 
 int main() 
 {
@@ -20,7 +21,7 @@ int main()
 
 
 
-    delo2d_sprite_batch_init(&sb,100,&context);
+    delo2d_renderer_sprite_init(&sb,100,&context);
 
     Camera camera;
     delo2d_camera_init(&camera,&context);
@@ -34,12 +35,15 @@ int main()
     Vector2f o = (Vector2f){200,0};
     Rectangle_f sr = (Rectangle_f){0,0,64,64};
 
-    delo2d_sprite_batch_add(&sb,&c,&t,&o,&sr);
+    delo2d_renderer_sprite_add(&sb,&c,&t,&o,&sr);
 
 o.x = 400;
 o.y = 0;
-    delo2d_sprite_batch_add(&sb,&c,&t,&o,&sr);
-    
+
+    delo2d_renderer_sprite_add(&sb,&c,&t,&o,&sr);
+
+
+    float time = 0;
     while (!glfwWindowShouldClose(context.window)) 
     {
         glfwPollEvents();
@@ -47,11 +51,16 @@ o.y = 0;
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        delo2d_sprite_batch_update(&sb);
-        delo2d_sprite_batch_render(&sb, &camera.projection);
+        delo2d_renderer_sprite_update(&sb);
+        delo2d_renderer_sprite_render(&sb, &camera.projection);
         delo2d_gl_check_error();
 
-    delo2d_camera_rotate(&camera,0.01);
+    //delo2d_camera_rotate(&camera,0.01);
+
+        time += 0.1f;
+
+        delo2d_sprite_transform(&sb.transforms[1],(Vector2f){1,1},(Vector2f){0,0},0.6);
+        sb.change_mask |= (1 << 1);
         glfwSwapBuffers(context.window);
     }
 

@@ -81,10 +81,10 @@ uint8_t delo2d_context_init(Context *context, uint16_t width, uint16_t height, c
     glEnable( GL_BLEND ); 
 }
 
-uint8_t delo2d_sprite_batch_init(SpriteBatch *sb
-                                ,uint32_t     capacity
-                                ,Context     *context
-                                )
+uint8_t delo2d_renderer_sprite_init(SpriteBatch *sb
+                                   ,uint32_t     capacity
+                                   ,Context     *context
+                                   )
 {
     
     sb->context = context;
@@ -160,7 +160,7 @@ glBindVertexArray(0);
     sb->texture = NULL;
 
 }
-uint8_t delo2d_sprite_batch_update(SpriteBatch *sb)
+uint8_t delo2d_renderer_sprite_update(SpriteBatch *sb)
 {
     if((sb->change_mask >> 0) & 1)
     {
@@ -191,7 +191,7 @@ uint8_t delo2d_sprite_batch_update(SpriteBatch *sb)
     } 
 }
 
-uint8_t delo2d_sprite_batch_render(SpriteBatch *sb, Matrix44 *projection)
+uint8_t delo2d_renderer_sprite_render(SpriteBatch *sb, Matrix44 *projection)
 {
     /*------------------Draw instances-----------------*/
     glBindVertexArray(sb->vao);
@@ -212,12 +212,12 @@ uint8_t delo2d_sprite_batch_render(SpriteBatch *sb, Matrix44 *projection)
     /*------------------Draw instances-----------------*/
 }
 
-uint8_t delo2d_sprite_batch_add(SpriteBatch *sb
-                               ,Color       *color
-                               ,Matrix44    *transform
-                               ,Vector2f    *offset
-                               ,Rectangle_f *src_rect
-                               )
+uint8_t delo2d_renderer_sprite_add(SpriteBatch *sb
+                                  ,Color       *color
+                                  ,Matrix44    *transform
+                                  ,Vector2f    *offset
+                                  ,Rectangle_f *src_rect
+                                  )
 {
 
     int32_t index = sb->count;
@@ -240,54 +240,18 @@ uint8_t delo2d_sprite_batch_add(SpriteBatch *sb
         printf("%f\n",sb->offsets   [index].x);
     }
 }
-
-uint8_t delo2d_sprite_batch_modify_color(SpriteBatch *sb
-                                        ,Color       *color
-                                        ,int32_t      index
-                                        )
+void delo2d_sprite_transform(Matrix44 *transform, Vector2f scale, Vector2f skew, float rotation)
 {
-    if(index < sb->capacity)
-    {
-        sb->change_mask |= (0 << 1);
-        sb->colors[index] = *color;
-    }
+    Matrix44 matrix          = matrix44_scale(64,64,1);
+    Matrix44 matrix_scale    = matrix44_scale(scale.x,scale.y,1);
+    Matrix44 matrix_skew     = matrix44_skew(skew.x,skew.y);
+    Matrix44 matrix_rotation = matrix44_rotation_z(rotation);
 
-}
-uint8_t delo2d_sprite_batch_modify_transform(SpriteBatch *sb
-                                            ,Matrix44    *transform
-                                            ,int32_t      index
-                                            )
-{
-    if(index < sb->capacity)
-    {
-        sb->change_mask |= (1 << 1);
-        sb->transforms[index] = *transform;
-    }
+    matrix = matrix44_multiply(matrix, matrix_scale);
+    matrix = matrix44_multiply(matrix, matrix_skew);
+    matrix = matrix44_multiply(matrix, matrix_rotation);
 
-}
-uint8_t delo2d_sprite_batch_modify_offset(SpriteBatch *sb
-                                         ,Vector2f    *offset
-                                         ,int32_t      index
-                                         )
-{
-    if(index < sb->capacity)
-    {
-        sb->change_mask |= (2 << 1);
-        sb->offsets[index] = *offset;
-    }
-
-}
-uint8_t delo2d_sprite_batch_modify_src_rect(SpriteBatch *sb
-                                           ,Rectangle_f *src_rect
-                                           ,int32_t      index
-                                           )
-{
-    if(index < sb->capacity)
-    {
-        sb->change_mask |= (3 << 1);
-        sb->src_rects[index] = *src_rect;
-    }
-
+    *transform = matrix;
 }
 //shader code begin
 void delo2d_shader_check_compile_status(GLuint shader)
@@ -521,6 +485,17 @@ Matrix44 matrix44_identity()
         0, 1, 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1
+    };
+    return matrix;
+}
+Matrix44 matrix44_skew(float sx, float sy)
+{
+    struct Matrix44 matrix = 
+    {
+        1, sx,    sy,    0,
+        0, 1,     0,     0,
+        0, 0,     1,     0,
+        0, 0,     0,     1
     };
     return matrix;
 }

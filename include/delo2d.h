@@ -104,45 +104,25 @@ void delo2d_gl_check_error();
 
 uint8_t delo2d_context_init(Context *context, uint16_t width, uint16_t height, char *window_title);
 
-uint8_t delo2d_sprite_batch_init(SpriteBatch *sb
+uint8_t delo2d_renderer_sprite_init(SpriteBatch *sb
                                 ,uint32_t     capacity
                                 ,Context     *context
                                 );
 
 
-uint8_t delo2d_sprite_batch_update(SpriteBatch *sb);
+uint8_t delo2d_renderer_sprite_update(SpriteBatch *sb);
 
-uint8_t delo2d_sprite_batch_render(SpriteBatch *sb, Matrix44 *projection);
+uint8_t delo2d_renderer_sprite_render(SpriteBatch *sb, Matrix44 *projection);
 
-uint8_t delo2d_sprite_batch_add(SpriteBatch *sb
+uint8_t delo2d_renderer_sprite_add(SpriteBatch *sb
                                ,Color       *color
                                ,Matrix44    *transform
                                ,Vector2f    *offset
                                ,Rectangle_f *src_rect
                                );
-
-uint8_t delo2d_sprite_batch_modify_color(SpriteBatch *sb
-                                        ,Color       *color
-                                        ,int32_t      index
-                                        );
-
-uint8_t delo2d_sprite_batch_modify_transform(SpriteBatch *sb
-                                            ,Matrix44    *transform
-                                            ,int32_t      index
-                                            );
-
-uint8_t delo2d_sprite_batch_modify_offset(SpriteBatch *sb
-                                         ,Vector2f    *offset
-                                         ,int32_t      index
-                                         );
-
-uint8_t delo2d_sprite_batch_modify_src_rect(SpriteBatch *sb
-                                           ,Rectangle_f *src_rect
-                                           ,int32_t      index
-                                           );
-
-                                           //matrix code begin
+//matrix code begin
 Matrix44 matrix44_identity();
+Matrix44 matrix44_skew(float sx, float sy);
 Matrix44 matrix44_perspective();
 Matrix44 matrix44_scale(float x, float y, float z);
 Matrix44 matrix44_translation(float x, float y, float z);
@@ -173,3 +153,5 @@ void delo2d_camera_move(Camera *camera,float tx, float ty);
 void delo2d_camera_zoom(Camera *camera,float z);
 void delo2d_camera_rotate(Camera *camera,float t);
 //camera code end
+
+void delo2d_sprite_transform(Matrix44 *transform, Vector2f scale, Vector2f skew, float rotation);
