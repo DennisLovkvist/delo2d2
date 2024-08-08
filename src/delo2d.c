@@ -240,9 +240,35 @@ uint8_t delo2d_renderer_sprite_add(SpriteBatch *sb
         printf("%f\n",sb->offsets   [index].x);
     }
 }
-void delo2d_sprite_transform(Matrix44 *transform, Vector2f scale, Vector2f skew, float rotation)
+
+void delo2d_render_target_init(RenderTarget *rt, uint32_t width, uint32_t height)
 {
-    Matrix44 matrix          = matrix44_scale(64,64,1);
+    glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glGenFramebuffers(1, &rt->fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, rt->fbo);
+
+	// Create Framebuffer Texture
+	glGenTextures(1, &rt->texture.renderer_id);
+	glBindTexture(GL_TEXTURE_2D, rt->texture.renderer_id);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width,  height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rt->texture.renderer_id, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    rt->texture.width  = width;
+    rt->texture.height = height;
+
+	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void delo2d_sprite_transform(uint32_t width,uint32_t height,Matrix44 *transform, Vector2f scale, Vector2f skew, float rotation)
+{
+    Matrix44 matrix          = matrix44_scale(width/2,height/2,1);
     Matrix44 matrix_scale    = matrix44_scale(scale.x,scale.y,1);
     Matrix44 matrix_skew     = matrix44_skew(skew.x,skew.y);
     Matrix44 matrix_rotation = matrix44_rotation_z(rotation);

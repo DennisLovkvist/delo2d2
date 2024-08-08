@@ -98,6 +98,12 @@ struct SpriteBatch
     Texture *texture;
 
 };
+typedef struct RenderTarget RenderTarget;
+struct RenderTarget
+{
+    uint32_t fbo;
+    Texture texture;
+};
 
 void delo2d_gl_clear_error();
 void delo2d_gl_check_error();
@@ -120,6 +126,9 @@ uint8_t delo2d_renderer_sprite_add(SpriteBatch *sb
                                ,Vector2f    *offset
                                ,Rectangle_f *src_rect
                                );
+
+void delo2d_render_target_init(RenderTarget *rt, uint32_t width, uint32_t height);
+
 //matrix code begin
 Matrix44 matrix44_identity();
 Matrix44 matrix44_skew(float sx, float sy);
@@ -154,4 +163,4 @@ void delo2d_camera_zoom(Camera *camera,float z);
 void delo2d_camera_rotate(Camera *camera,float t);
 //camera code end
 
-void delo2d_sprite_transform(Matrix44 *transform, Vector2f scale, Vector2f skew, float rotation);
+void delo2d_sprite_transform(uint32_t width,uint32_t height, Matrix44 *transform, Vector2f scale, Vector2f skew, float rotation);
